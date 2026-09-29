@@ -346,9 +346,9 @@
     align-content: start;
   }
   .day-feast {
-    color: rgba(33,20,10,.88);
+    color: rgba(33,20,10,.78);
     font-style: italic;
-    font-size: calc(16px * var(--fit));
+    font-size: calc(15.5px * var(--fit));
   }
   .day-services {
     display: grid;
@@ -363,12 +363,17 @@
     grid-template-columns: calc(62px * var(--fit)) 1fr;
     gap: calc(10px * var(--fit));
     padding: calc(3px * var(--fit)) 0;
-    font-size: calc(16px * var(--fit));
+    font-size: calc(17.5px * var(--fit));
   }
   .time {
     font-weight: 700;
     color: var(--green);
     white-space: nowrap;
+  }
+  /* сами богослужения — главное на листе: жирно и самым тёмным */
+  .desc {
+    font-weight: 700;
+    color: #17100a;
   }
   .day.festive .day-date,
   .day.festive .day-weekday,
