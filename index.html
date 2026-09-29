@@ -575,18 +575,24 @@ function parseSchedule(raw) {
       line = line.slice(1).trim();
     }
 
-    const dateMatch = line.match(dateRe);
-    if (dateMatch) {
+    const startDay = () => {
       current = newDay();
-      current.date = `${dateMatch[1]} ${dateMatch[2].toLowerCase()}`;
       current.festive = marked;
       days.push(current);
+    };
+    const filled = d => d && (d.weekday || d.feast || d.services.length);
+
+    const dateMatch = line.match(dateRe);
+    if (dateMatch) {
+      startDay();
+      current.date = `${dateMatch[1]} ${dateMatch[2].toLowerCase()}`;
       line = line.slice(dateMatch[0].length).trim().replace(/^[|,–—-]+\s*/, '');
       if (!line) return;
     } else if (!current || marked) {
-      current = newDay();
-      current.festive = marked;
-      days.push(current);
+      startDay();
+    } else if (weekdayRe.test(line) && filled(current)) {
+      // строка с новым днём недели — значит, начался следующий день
+      startDay();
     }
 
     const wdMatch = line.match(weekdayRe);
