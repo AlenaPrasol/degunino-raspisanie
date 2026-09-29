@@ -345,10 +345,12 @@
     gap: calc(6px * var(--fit));
     align-content: start;
   }
+  /* матушка: сначала смотрят, какой день и праздник, потом уже службы */
   .day-feast {
-    color: rgba(33,20,10,.78);
-    font-style: italic;
-    font-size: calc(15.5px * var(--fit));
+    color: #17100a;
+    font-weight: 700;
+    font-size: calc(17.5px * var(--fit));
+    line-height: 1.3;
   }
   .day-services {
     display: grid;
@@ -363,24 +365,21 @@
     grid-template-columns: calc(62px * var(--fit)) 1fr;
     gap: calc(10px * var(--fit));
     padding: calc(3px * var(--fit)) 0;
-    font-size: calc(17.5px * var(--fit));
+    font-size: calc(15.5px * var(--fit));
   }
   .time {
     font-weight: 700;
     color: var(--green);
     white-space: nowrap;
   }
-  /* сами богослужения — главное на листе: жирно и самым тёмным */
   .desc {
-    font-weight: 700;
-    color: #17100a;
+    color: rgba(33,20,10,.86);
   }
   .day.festive .day-date,
   .day.festive .day-weekday,
   .day.festive .day-feast,
   .day.festive .time,
   .day.festive .desc { color: var(--red); }
-  .day.festive .day-feast { font-style: italic; }
   .style-gzhel .day-date,
   .style-gzhel .time { color: var(--blue); }
   .style-gold .day-date,
