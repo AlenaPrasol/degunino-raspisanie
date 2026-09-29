@@ -486,7 +486,21 @@ const timeRe = /^(\d{1,2}[:.]\d{2})\s+(.+)$/;
 
 function $(id) { return document.getElementById(id); }
 
+function applyQueryData() {
+  try {
+    const raw = new URLSearchParams(location.search).get('data');
+    if (!raw) return false;
+    const json = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    fields.forEach(id => { if (json[id] !== undefined) $(id).value = json[id]; });
+    renderPhoto(json.photo || DEFAULT_LOGO, !json.photo);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function loadState() {
+  if (applyQueryData()) return;
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
     fields.forEach(id => {
