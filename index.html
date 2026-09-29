@@ -414,6 +414,12 @@
   @media (max-width: 960px) {
     main { grid-template-columns: 1fr; }
   }
+  /* ?view — режим для прихожан по ссылке из сторис: только лист и две кнопки, без редактора */
+  body.view-only .controls, body.view-only .format-tabs { display: none; }
+  body.view-only main { grid-template-columns: 1fr; max-width: 940px; }
+  body.view-only header .brand small { display: none; }
+  .view-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .view-actions button { flex: 1; min-width: 160px; }
   @media print {
     body { background: #fff; }
     header, .controls, .format-tabs { display: none; }
@@ -614,6 +620,22 @@ function applyQueryData() {
     const json = JSON.parse(decodeURIComponent(escape(atob(raw))));
     fields.forEach(id => { if (json[id] !== undefined) $(id).value = json[id]; });
     renderPhoto(json.photo || DEFAULT_LOGO, !json.photo);
+    if (new URLSearchParams(location.search).has('view')) {
+      document.body.classList.add('view-only');
+      const bar = document.createElement('div');
+      bar.className = 'view-actions';
+      bar.innerHTML = '<button type="button" id="viewPdf">Скачать PDF</button>'
+                    + '<button type="button" id="viewPng">Скачать картинку</button>';
+      document.querySelector('.preview-shell').prepend(bar);
+      bar.querySelector('#viewPdf').addEventListener('click', () => $('savePdfBtn').click());
+      bar.querySelector('#viewPng').addEventListener('click', () => $('savePngBtn').click());
+      // на телефоне удобнее вертикальный лист, на компьютере — A4
+      const fmt = window.innerWidth < 700 ? 'story' : 'a4';
+      setTimeout(() => {
+        const b = document.querySelector('.format-tabs button[data-format="' + fmt + '"]');
+        if (b) b.click();
+      }, 0);
+    }
     return true;
   } catch (_) {
     return false;
