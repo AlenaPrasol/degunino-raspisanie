@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Расписание богослужений — Дегунино</title>
+<style>
+  :root {
+    --bg: #0e0a07;
+    --panel: #17100b;
+    --panel2: #21160d;
+    --line: rgba(200,160,74,.24);
+    --gold: #c8a04a;
+    --gold2: #f5d78e;
+    --text: #fff8eb;
+    --muted: rgba(255,248,235,.68);
+    --paper: #fbf6ea;
+    --ink: #21140a;
+    --green: #2e6234;
+    --red: #8b1e18;
+    --blue: #1b5c88;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.45;
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    background: rgba(14,10,7,.96);
+    position: sticky;
+    top: 0;
+    z-index: 4;
+  }
+  .bar {
+    max-width: 1440px;
+    margin: 0 auto;
+    min-height: 70px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+  .bar img {
+    height: 44px;
+    width: auto;
+    display: block;
+  }
+  .brand {
+    display: grid;
+    gap: 2px;
+    color: var(--gold2);
+    letter-spacing: .04em;
+  }
+  .brand small {
+    color: var(--gold);
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+  nav a, button, .file-label {
+    border: 1px solid var(--line);
+    background: rgba(33,22,13,.88);
+    color: var(--gold2);
+    min-height: 42px;
+    padding: 10px 14px;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  button.primary {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+  main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 22px 24px 56px;
+    display: grid;
+    grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
+    gap: 22px;
+  }
+  .controls {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 18px;
+  }
+  h1, h2 {
+    margin: 0;
+    font-weight: 400;
+    line-height: 1.12;
+  }
+  h1 {
+    font-size: 29px;
+    color: var(--gold2);
+  }
+  h2 {
+    font-size: 18px;
+    color: var(--gold2);
+    margin-bottom: 14px;
+  }
+  .fields {
+    display: grid;
+    gap: 10px;
+  }
+  label {
+    display: grid;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  input, textarea, select {
+    width: 100%;
+    border: 1px solid rgba(200,160,74,.28);
+    background: #100b07;
+    color: var(--text);
+    padding: 11px 12px;
+    font: inherit;
+    font-size: 15px;
+    outline: none;
+  }
+  textarea {
+    min-height: 220px;
+    resize: vertical;
+    line-height: 1.45;
+  }
+  input[type="file"] { display: none; }
+  .file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold2);
+    min-height: 48px;
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .preview-shell {
+    min-width: 0;
+    display: grid;
+    gap: 14px;
+    align-content: start;
+  }
+  .format-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .format-tabs button {
+    min-width: 96px;
+  }
+  .format-tabs button.active {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  .sheet-wrap {
+    overflow: auto;
+    border: 1px solid var(--line);
+    background: #080604;
+    padding: 18px;
+  }
+  .sheet {
+    width: min(860px, 100%);
+    min-height: 1080px;
+    margin: 0 auto;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid rgba(33,20,10,.18);
+    box-shadow: 0 30px 80px rgba(0,0,0,.35);
+    overflow: hidden;
+  }
+  .sheet.post {
+    width: min(720px, 100%);
+    min-height: 900px;
+  }
+  .sheet.story {
+    width: min(470px, 100%);
+    min-height: 835px;
+  }
+  .hero {
+    min-height: 245px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    gap: 22px;
+    align-items: center;
+    padding: 28px;
+    color: #fffaf0;
+    background: linear-gradient(135deg, #244c2a, #0e2815);
+  }
+  .style-gold .hero { background: linear-gradient(135deg, #251509, #7c5418); }
+  .style-gzhel .hero { background: linear-gradient(135deg, #eff7fb, #1b5c88); color: #0f2b45; }
+  .style-watercolor .hero { background: linear-gradient(135deg, #f4ecdd, #9f7045); color: #24160b; }
+  .style-dark .hero { background: linear-gradient(135deg, #120b07, #45230f 55%, #8b1e18); }
+  .style-pasha .hero { background: linear-gradient(135deg, #fff4dc, #d7a73c 48%, #8b1e18); color: #271509; }
+  .style-troitsa .hero { background: linear-gradient(135deg, #f2f9e8, #4f8b3f 50%, #1d4b28); color: #102313; }
+  .style-pokrov .hero { background: linear-gradient(135deg, #f8e4c7, #b66b3c 52%, #5f1b17); color: #25120b; }
+  .style-minimal .hero {
+    background: #fbf6ea;
+    color: #21140a;
+    border-bottom: 3px solid rgba(46,98,52,.24);
+  }
+  .photo {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,.72);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(255,255,255,.28), transparent 42%),
+      linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.02));
+  }
+  .photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+  .photo.has-logo {
+    background: #fff;
+    padding: 10px;
+  }
+  .photo.has-logo img {
+    object-fit: contain;
+  }
+  .cross {
+    font-size: 22px;
+    letter-spacing: .16em;
+    opacity: .86;
+    margin-bottom: 10px;
+  }
+  .church-name {
+    font-size: clamp(24px, 3.6vw, 38px);
+    line-height: 1.1;
+  }
+  .subtitle {
+    margin-top: 8px;
+    font-size: 16px;
+    opacity: .82;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    padding: 12px 28px;
+    background: rgba(46,98,52,.1);
+    color: #375238;
+    border-bottom: 1px solid rgba(33,20,10,.16);
+    font-size: 14px;
+  }
+  .style-gold .meta { background: rgba(200,160,74,.18); color: #6e4b17; }
+  .style-gzhel .meta { background: rgba(27,92,136,.12); color: #194e74; }
+  .style-watercolor .meta { background: rgba(159,112,69,.13); color: #634025; }
+  .style-dark .meta { background: rgba(139,30,24,.11); color: #6a2a22; }
+  .style-pasha .meta { background: rgba(215,167,60,.18); color: #6b4513; }
+  .style-troitsa .meta { background: rgba(79,139,63,.16); color: #2d5e2f; }
+  .style-pokrov .meta { background: rgba(182,107,60,.14); color: #713b27; }
+  .style-minimal .meta { background: #fff; color: #445044; }
+  .schedule {
+    padding: 28px;
+    display: grid;
+    gap: 15px;
+  }
+  .day {
+    display: grid;
+    grid-template-columns: 148px 1fr;
+    gap: 18px;
+    border-top: 1px solid rgba(33,20,10,.18);
+    padding-top: 15px;
+  }
+  .day:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .day-title {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .day-title.sunday { color: var(--red); }
+  .saint {
+    color: rgba(33,20,10,.65);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  .service {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 12px;
+    padding: 7px 0;
+    border-top: 1px solid rgba(33,20,10,.08);
+  }
+  .service:first-of-type { border-top: 0; }
+  .time {
+    font-weight: 700;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .style-gzhel .day-title,
+  .style-gzhel .time { color: var(--blue); }
+  .style-gold .day-title,
+  .style-gold .time { color: #7c5418; }
+  .style-dark .day-title,
+  .style-dark .time { color: #6a2a22; }
+  .style-pasha .day-title,
+  .style-pasha .time { color: #8b1e18; }
+  .style-troitsa .day-title,
+  .style-troitsa .time { color: #2e6234; }
+  .style-pokrov .day-title,
+  .style-pokrov .time { color: #924b2c; }
+  .style-minimal .day-title,
+  .style-minimal .time { color: #304f34; }
+  .service.festive .time,
+  .service.festive .desc { color: var(--red); font-weight: 700; }
+  .footer {
+    margin-top: auto;
+    padding: 18px 28px;
+    border-top: 1px solid rgba(33,20,10,.16);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: rgba(33,20,10,.64);
+    font-size: 14px;
+  }
+  .empty {
+    border: 1px dashed rgba(33,20,10,.28);
+    padding: 18px;
+    color: rgba(33,20,10,.58);
+  }
+  @media (max-width: 960px) {
+    main { grid-template-columns: 1fr; }
+    .hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .day { grid-template-columns: 1fr; gap: 6px; }
+  }
+  @media print {
+    body { background: #fff; }
+    header, .controls, .format-tabs { display: none; }
+    main { display: block; padding: 0; }
+    .sheet-wrap { border: 0; padding: 0; background: #fff; overflow: visible; }
+    .sheet { width: 100%; min-height: 100vh; box-shadow: none; border: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <img src="assets/logo.png" alt="Герб прихода в Дегунине">
+    <div class="brand">
+      <span>Храм свв. равноапп. Кирилла и Мефодия</span>
+      <small>Дегунино · студия расписаний</small>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="controls">
+    <div class="panel">
+      <h1>Расписание богослужений</h1>
+    </div>
+
+    <div class="panel">
+      <h2>Как пользоваться</h2>
+      <div class="fields">
+        <div style="color:var(--muted);font-size:15px;line-height:1.65">
+          <p style="margin:0 0 10px">1. Данные храма уже вписаны — проверьте и поправьте при необходимости.</p>
+          <p style="margin:0 0 10px">2. При желании загрузите фото храма вместо герба — оно встанет в кружок.</p>
+          <p style="margin:0 0 10px">3. Впишите расписание текстом: строка дня, затем службы с временем.</p>
+          <p style="margin:0">4. Выберите стиль и формат: A4, пост или сторис. Нажмите «Сохранить» — данные останутся в этом браузере.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Профиль храма</h2>
+      <div class="fields">
+        <label>Название храма
+          <input id="churchName" value="Храм свв. равноапп. Кирилла и Мефодия">
+        </label>
+        <label>Место
+          <input id="place" value="Москва, Дегунино, ул. Базовская, 15/5">
+        </label>
+        <label>Настоятель
+          <input id="priest" value="иерей Даниил Черкасов">
+        </label>
+        <label>Телефон или ссылка
+          <input id="contact" value="+7 924 174-45-92">
+        </label>
+        <label>Заголовок расписания
+          <input id="title" value="Расписание богослужений">
+        </label>
+        <label>Период
+          <input id="period" value="">
+        </label>
+        <label>Стиль
+          <select id="style">
+            <option value="green">Строгий зелёный</option>
+            <option value="gold">Золотой праздничный</option>
+            <option value="dark">Тёмный храмовый</option>
+            <option value="pasha">Пасхальный светлый</option>
+            <option value="troitsa">Троицкий зелёный</option>
+            <option value="pokrov">Покров осенний</option>
+            <option value="gzhel">Гжель зимняя</option>
+            <option value="watercolor">Акварель светлая</option>
+            <option value="minimal">Строгий светлый</option>
+          </select>
+        </label>
+        <label class="file-label" for="photoInput">Загрузить фото храма (заменит герб)</label>
+        <input id="photoInput" type="file" accept="image/*">
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Текст расписания</h2>
+      <textarea id="scheduleText" placeholder="Понедельник 25 мая | Попразднство Вознесения. Сщмч. Ермогена.
+18:00 Богослужение всенародным пением
+
+Суббота 30 мая | Троицкая родительская суббота
+15:45 Заупокойная служба
+16:30 Всенощное бдение. Исповедь
+
+Воскресенье 31 мая | День Святой Троицы. Пятидесятница
+09:00 Праздничная Божественная Литургия
+16:00 Богослужение всенародным пением"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="saveBtn">Сохранить</button>
+      <button id="resetBtn">Очистить память</button>
+      <button id="printBtn">Печать / PDF</button>
+      <button id="downloadBtn">Скачать HTML</button>
+    </div>
+  </section>
+
+  <section class="preview-shell">
+    <div class="format-tabs">
+      <button class="active" data-format="a4">A4</button>
+      <button data-format="post">Пост</button>
+      <button data-format="story">Сторис</button>
+    </div>
+    <div class="sheet-wrap">
+      <article id="sheet" class="sheet style-gold">
+        <div class="hero">
+          <div class="photo has-logo" id="photoBox"></div>
+          <div>
+            <div class="cross">✥ ☦ ✥</div>
+            <div class="church-name" id="previewChurch"></div>
+            <div class="subtitle" id="previewTitle"></div>
+          </div>
+        </div>
+        <div class="meta">
+          <span id="previewPlace"></span>
+          <span id="previewPriest"></span>
+          <span id="previewContact"></span>
+        </div>
+        <div class="schedule" id="previewSchedule"></div>
+        <div class="footer">
+          <span id="footerChurch"></span>
+          <span id="footerPeriod"></span>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<script>
+const STORE_KEY = 'degunino-raspisanie-v1';
+const DEFAULT_LOGO = 'assets/logo.png';
+const fields = ['churchName', 'place', 'priest', 'contact', 'title', 'period', 'style', 'scheduleText'];
+const dayRe = /^(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|воскресение)\b/i;
+const timeRe = /^(\d{1,2}[:.]\d{2})\s+(.+)$/;
+
+function $(id) { return document.getElementById(id); }
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    fields.forEach(id => {
+      if (saved[id]) $(id).value = saved[id];
+    });
+    renderPhoto(saved.photo || DEFAULT_LOGO, !saved.photo);
+  } catch (_) {
+    renderPhoto(DEFAULT_LOGO, true);
+  }
+}
+
+function saveState() {
+  const data = {};
+  fields.forEach(id => data[id] = $(id).value);
+  const photo = $('photoBox').querySelector('img');
+  if (photo && !$('photoBox').classList.contains('has-logo')) data.photo = photo.src;
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+function renderPhoto(src, isLogo) {
+  $('photoBox').innerHTML = '';
+  $('photoBox').classList.toggle('has-logo', !!isLogo);
+  if (!src) return;
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = isLogo ? 'Герб прихода' : 'Фото храма';
+  $('photoBox').appendChild(img);
+}
+
+function parseSchedule(raw) {
+  const days = [];
+  let current = null;
+  raw.split(/\n+/).map(line => line.trim()).filter(Boolean).forEach(line => {
+    const parts = line.split('|').map(p => p.trim()).filter(Boolean);
+    const first = parts[0] || line;
+    if (dayRe.test(first)) {
+      current = { name: first, saint: parts.slice(1).join('. '), services: [] };
+      days.push(current);
+      return;
+    }
+    if (!current) {
+      current = { name: 'Расписание', saint: '', services: [] };
+      days.push(current);
+    }
+    const match = line.match(timeRe);
+    if (match) {
+      current.services.push({ time: match[1].replace('.', ':'), desc: match[2] });
+    } else if (!current.saint) {
+      current.saint = line;
+    } else {
+      current.services.push({ time: '', desc: line });
+    }
+  });
+  return days;
+}
+
+function isFestive(text) {
+  return /литург|всенощ|празд|троиц|пасх|рождеств|крещен|исповед/i.test(text);
+}
+
+function renderSchedule(days) {
+  const box = $('previewSchedule');
+  box.innerHTML = '';
+  if (!days.length) {
+    box.innerHTML = '<div class="empty">Впишите расписание слева</div>';
+    return;
+  }
+  days.forEach(day => {
+    const section = document.createElement('section');
+    section.className = 'day';
+    const title = document.createElement('div');
+    title.className = /воскресень|воскресение/i.test(day.name) ? 'day-title sunday' : 'day-title';
+    title.textContent = day.name;
+    const content = document.createElement('div');
+    if (day.saint) {
+      const saint = document.createElement('div');
+      saint.className = 'saint';
+      saint.textContent = day.saint;
+      content.appendChild(saint);
+    }
+    day.services.forEach(svc => {
+      const row = document.createElement('div');
+      row.className = isFestive(svc.desc) ? 'service festive' : 'service';
+      const time = document.createElement('div');
+      time.className = 'time';
+      time.textContent = svc.time || ' ';
+      const desc = document.createElement('div');
+      desc.className = 'desc';
+      desc.textContent = svc.desc;
+      row.append(time, desc);
+      content.appendChild(row);
+    });
+    section.append(title, content);
+    box.appendChild(section);
+  });
+}
+
+function render() {
+  const style = $('style').value;
+  const sheet = $('sheet');
+  const format = sheet.classList.contains('story') ? ' story' : (sheet.classList.contains('post') ? ' post' : '');
+  sheet.className = `sheet style-${style}${format}`;
+  $('previewChurch').textContent = $('churchName').value;
+  $('previewTitle').textContent = $('period').value ? `${$('title').value} · ${$('period').value}` : $('title').value;
+  $('previewPlace').textContent = $('place').value;
+  $('previewPriest').textContent = $('priest').value ? `Настоятель: ${$('priest').value}` : '';
+  $('previewContact').textContent = $('contact').value;
+  $('footerChurch').textContent = $('churchName').value;
+  $('footerPeriod').textContent = $('period').value;
+  renderSchedule(parseSchedule($('scheduleText').value));
+  saveState();
+}
+
+function downloadHTML() {
+  const styles = document.querySelector('style').textContent;
+  const html = '<!doctype html>\\n<html lang="ru">\\n<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' +
+    $('title').value.replace(/</g, '&lt;') + '</title><style>' + styles + '</style></head><body><main style="display:block;max-width:none">' +
+    '<div class="sheet-wrap" style="border:0;background:#fff">' + $('sheet').outerHTML + '</div></main></body></html>';
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'raspisanie-degunino.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+fields.forEach(id => $(id).addEventListener('input', render));
+$('style').addEventListener('change', render);
+$('saveBtn').addEventListener('click', () => { saveState(); render(); });
+$('resetBtn').addEventListener('click', () => {
+  localStorage.removeItem(STORE_KEY);
+  location.reload();
+});
+$('printBtn').addEventListener('click', () => window.print());
+$('downloadBtn').addEventListener('click', downloadHTML);
+$('photoInput').addEventListener('change', event => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { renderPhoto(reader.result, false); render(); };
+  reader.readAsDataURL(file);
+});
+document.querySelectorAll('.format-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.format-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    $('sheet').classList.remove('post', 'story');
+    if (btn.dataset.format !== 'a4') $('sheet').classList.add(btn.dataset.format);
+  });
+});
+
+loadState();
+render();
+</script>
+</body>
+</html>
