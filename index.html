@@ -481,7 +481,7 @@
 const STORE_KEY = 'degunino-raspisanie-v1';
 const DEFAULT_LOGO = 'assets/logo.png';
 const fields = ['churchName', 'place', 'priest', 'contact', 'title', 'period', 'style', 'scheduleText'];
-const dayRe = /^(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|воскресение)\b/i;
+const dayRe = /^(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|воскресение)(?![а-яёА-ЯЁ])/i;
 const timeRe = /^(\d{1,2}[:.]\d{2})\s+(.+)$/;
 
 function $(id) { return document.getElementById(id); }
