@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Расписание богослужений — Дегунино</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --bg: #0e0a07;
@@ -25,7 +30,7 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: "PT Serif", Georgia, "Times New Roman", serif;
     line-height: 1.45;
   }
   header {
@@ -173,6 +178,7 @@
     padding: 18px;
   }
   .sheet {
+    --fit: 1;
     width: min(860px, 100%);
     min-height: 1080px;
     margin: 0 auto;
@@ -181,6 +187,8 @@
     border: 1px solid rgba(33,20,10,.18);
     box-shadow: 0 30px 80px rgba(0,0,0,.35);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .sheet.post {
     width: min(720px, 100%);
@@ -191,13 +199,12 @@
     min-height: 835px;
   }
   .hero {
-    min-height: 245px;
     position: relative;
     display: grid;
-    grid-template-columns: 170px 1fr;
-    gap: 22px;
+    grid-template-columns: calc(150px * var(--fit)) 1fr;
+    gap: calc(20px * var(--fit));
     align-items: center;
-    padding: 28px;
+    padding: calc(24px * var(--fit)) 28px;
     color: #fffaf0;
     background: linear-gradient(135deg, #244c2a, #0e2815);
   }
@@ -214,8 +221,8 @@
     border-bottom: 3px solid rgba(46,98,52,.24);
   }
   .photo {
-    width: 160px;
-    height: 160px;
+    width: calc(140px * var(--fit));
+    height: calc(140px * var(--fit));
     border-radius: 50%;
     border: 4px solid rgba(255,255,255,.72);
     overflow: hidden;
@@ -238,29 +245,29 @@
     object-fit: contain;
   }
   .cross {
-    font-size: 22px;
+    font-size: calc(20px * var(--fit));
     letter-spacing: .16em;
     opacity: .86;
-    margin-bottom: 10px;
+    margin-bottom: calc(8px * var(--fit));
   }
   .church-name {
-    font-size: clamp(24px, 3.6vw, 38px);
+    font-size: calc(clamp(24px, 3.6vw, 36px) * var(--fit));
     line-height: 1.1;
   }
   .subtitle {
-    margin-top: 8px;
-    font-size: 16px;
+    margin-top: calc(7px * var(--fit));
+    font-size: calc(16px * var(--fit));
     opacity: .82;
   }
   .meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 22px;
-    padding: 12px 28px;
+    gap: calc(8px * var(--fit)) 22px;
+    padding: calc(11px * var(--fit)) 28px;
+    font-size: calc(14px * var(--fit));
     background: rgba(46,98,52,.1);
     color: #375238;
     border-bottom: 1px solid rgba(33,20,10,.16);
-    font-size: 14px;
   }
   .style-gold .meta { background: rgba(200,160,74,.18); color: #6e4b17; }
   .style-gzhel .meta { background: rgba(27,92,136,.12); color: #194e74; }
@@ -271,71 +278,81 @@
   .style-pokrov .meta { background: rgba(182,107,60,.14); color: #713b27; }
   .style-minimal .meta { background: #fff; color: #445044; }
   .schedule {
-    padding: 28px;
+    padding: calc(28px * var(--fit)) 28px;
     display: grid;
-    gap: 15px;
+    gap: calc(16px * var(--fit));
+    font-size: calc(1em * var(--fit));
   }
   .day {
     display: grid;
-    grid-template-columns: 148px 1fr;
-    gap: 18px;
-    border-top: 1px solid rgba(33,20,10,.18);
-    padding-top: 15px;
+    gap: calc(7px * var(--fit));
   }
-  .day:first-child {
-    border-top: 0;
-    padding-top: 0;
+  .day + .day {
+    border-top: 1px solid rgba(33,20,10,.16);
+    padding-top: calc(14px * var(--fit));
   }
-  .day-title {
+  .day-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 10px;
+  }
+  .day-date {
     color: var(--green);
     font-weight: 700;
-    font-size: 17px;
+    font-size: calc(17px * var(--fit));
+    white-space: nowrap;
   }
-  .day-title.sunday { color: var(--red); }
-  .saint {
-    color: rgba(33,20,10,.65);
+  .day-feast {
+    color: rgba(33,20,10,.7);
     font-style: italic;
-    margin-bottom: 8px;
+    font-size: calc(15px * var(--fit));
+  }
+  .day-services {
+    border-top: 1px solid rgba(33,20,10,.16);
+    padding-top: calc(6px * var(--fit));
+    display: grid;
+    gap: calc(3px * var(--fit));
   }
   .service {
     display: grid;
-    grid-template-columns: 70px 1fr;
-    gap: 12px;
-    padding: 7px 0;
-    border-top: 1px solid rgba(33,20,10,.08);
+    grid-template-columns: calc(62px * var(--fit)) 1fr;
+    gap: calc(10px * var(--fit));
+    padding: calc(3px * var(--fit)) 0;
+    font-size: calc(15px * var(--fit));
   }
-  .service:first-of-type { border-top: 0; }
   .time {
     font-weight: 700;
     color: var(--green);
     white-space: nowrap;
   }
-  .style-gzhel .day-title,
+  .day.festive .day-date,
+  .day.festive .day-feast { color: var(--red); }
+  .day.festive .day-feast { font-style: italic; }
+  .style-gzhel .day-date,
   .style-gzhel .time { color: var(--blue); }
-  .style-gold .day-title,
+  .style-gold .day-date,
   .style-gold .time { color: #7c5418; }
-  .style-dark .day-title,
+  .style-dark .day-date,
   .style-dark .time { color: #6a2a22; }
-  .style-pasha .day-title,
+  .style-pasha .day-date,
   .style-pasha .time { color: #8b1e18; }
-  .style-troitsa .day-title,
+  .style-troitsa .day-date,
   .style-troitsa .time { color: #2e6234; }
-  .style-pokrov .day-title,
+  .style-pokrov .day-date,
   .style-pokrov .time { color: #924b2c; }
-  .style-minimal .day-title,
+  .style-minimal .day-date,
   .style-minimal .time { color: #304f34; }
-  .service.festive .time,
-  .service.festive .desc { color: var(--red); font-weight: 700; }
   .footer {
     margin-top: auto;
-    padding: 18px 28px;
+    padding: calc(14px * var(--fit)) 28px;
     border-top: 1px solid rgba(33,20,10,.16);
     display: flex;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
     color: rgba(33,20,10,.64);
-    font-size: 14px;
+    font-size: calc(14px * var(--fit));
   }
   .empty {
     border: 1px dashed rgba(33,20,10,.28);
@@ -345,7 +362,6 @@
   @media (max-width: 960px) {
     main { grid-template-columns: 1fr; }
     .hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
-    .day { grid-template-columns: 1fr; gap: 6px; }
   }
   @media print {
     body { background: #fff; }
@@ -379,8 +395,9 @@
         <div style="color:var(--muted);font-size:15px;line-height:1.65">
           <p style="margin:0 0 10px">1. Данные храма уже вписаны — проверьте и поправьте при необходимости.</p>
           <p style="margin:0 0 10px">2. При желании загрузите фото храма вместо герба — оно встанет в кружок.</p>
-          <p style="margin:0 0 10px">3. Впишите расписание текстом: строка дня, затем службы с временем.</p>
-          <p style="margin:0">4. Выберите стиль и формат: A4, пост или сторис. Нажмите «Сохранить» — данные останутся в этом браузере.</p>
+          <p style="margin:0 0 10px">3. Вставьте расписание как есть — хоть прямо из вашей таблицы. Строка с датой («2 октября»), дальше день и праздник, время можно писать в той же строке.</p>
+          <p style="margin:0 0 10px">4. Красным сами становятся воскресенья. Чтобы отметить праздник, поставьте <b style="color:var(--gold2)">*</b> в начале строки с датой.</p>
+          <p style="margin:0">5. Выберите стиль и формат: A4, пост или сторис. Кнопки внизу скачивают готовый PDF или картинку.</p>
         </div>
       </div>
     </div>
@@ -426,23 +443,22 @@
 
     <div class="panel">
       <h2>Текст расписания</h2>
-      <textarea id="scheduleText" placeholder="Понедельник 25 мая | Попразднство Вознесения. Сщмч. Ермогена.
-18:00 Богослужение всенародным пением
+      <textarea id="scheduleText" placeholder="2 октября
+пт Мчч. Трофи́ма, Савва́тия и Доримедо́нта 17:00 Исповедь. Вечернее богослужение
 
-Суббота 30 мая | Троицкая родительская суббота
-15:45 Заупокойная служба
-16:30 Всенощное бдение. Исповедь
+3 октября
+сб Вмч. Евста́фия Плакиды 8:40 Часы. Литургия. Панихида 17:00 Исповедь. Всенощное бдение
 
-Воскресенье 31 мая | День Святой Троицы. Пятидесятница
-09:00 Праздничная Божественная Литургия
-16:00 Богослужение всенародным пением"></textarea>
+4 октября
+вс Неделя 18-я по Пятидесятнице 8:00 Водосвятный молебен 8:40 Часы. Литургия"></textarea>
     </div>
 
     <div class="actions">
-      <button class="primary" id="saveBtn">Сохранить</button>
+      <button class="primary" id="savePdfBtn">Скачать PDF</button>
+      <button id="savePngBtn">Скачать картинку</button>
+      <button id="saveBtn">Сохранить</button>
+      <button id="printBtn">Печать</button>
       <button id="resetBtn">Очистить память</button>
-      <button id="printBtn">Печать / PDF</button>
-      <button id="downloadBtn">Скачать HTML</button>
     </div>
   </section>
 
@@ -481,8 +497,19 @@
 const STORE_KEY = 'degunino-raspisanie-v1';
 const DEFAULT_LOGO = 'assets/logo.png';
 const fields = ['churchName', 'place', 'priest', 'contact', 'title', 'period', 'style', 'scheduleText'];
-const dayRe = /^(понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|воскресение)(?![а-яёА-ЯЁ])/i;
-const timeRe = /^(\d{1,2}[:.]\d{2})\s+(.+)$/;
+const MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WEEKDAYS = {
+  'пн': 'Понедельник', 'понедельник': 'Понедельник',
+  'вт': 'Вторник', 'вторник': 'Вторник',
+  'ср': 'Среда', 'среда': 'Среда',
+  'чт': 'Четверг', 'четверг': 'Четверг',
+  'пт': 'Пятница', 'пятница': 'Пятница',
+  'сб': 'Суббота', 'суббота': 'Суббота',
+  'вс': 'Воскресенье', 'воскресенье': 'Воскресенье', 'воскресение': 'Воскресенье'
+};
+const dateRe = new RegExp('^(\\d{1,2})\\s*(' + MONTHS.join('|') + ')', 'i');
+const weekdayRe = new RegExp('^(' + Object.keys(WEEKDAYS).join('|') + ')(?![а-яё])\\.?\\s*', 'i');
+const timeSplitRe = /(\d{1,2}[:.]\d{2})/;
 
 function $(id) { return document.getElementById(id); }
 
@@ -530,35 +557,70 @@ function renderPhoto(src, isLogo) {
   $('photoBox').appendChild(img);
 }
 
+function newDay() {
+  return { date: '', weekday: '', feast: '', festive: false, services: [] };
+}
+
+// Текст приходит как попало: строка с датой отдельно, день недели сокращённо,
+// время посреди строки — так получается, когда расписание копируют из таблицы.
 function parseSchedule(raw) {
   const days = [];
   let current = null;
-  raw.split(/\n+/).map(line => line.trim()).filter(Boolean).forEach(line => {
-    const parts = line.split('|').map(p => p.trim()).filter(Boolean);
-    const first = parts[0] || line;
-    if (dayRe.test(first)) {
-      current = { name: first, saint: parts.slice(1).join('. '), services: [] };
-      days.push(current);
-      return;
+
+  raw.split(/\n+/).map(l => l.trim()).filter(Boolean).forEach(rawLine => {
+    let line = rawLine;
+    let marked = false;
+    if (line.startsWith('*')) {
+      marked = true;
+      line = line.slice(1).trim();
     }
-    if (!current) {
-      current = { name: 'Расписание', saint: '', services: [] };
+
+    const dateMatch = line.match(dateRe);
+    if (dateMatch) {
+      current = newDay();
+      current.date = `${dateMatch[1]} ${dateMatch[2].toLowerCase()}`;
+      current.festive = marked;
+      days.push(current);
+      line = line.slice(dateMatch[0].length).trim().replace(/^[|,–—-]+\s*/, '');
+      if (!line) return;
+    } else if (!current || marked) {
+      current = newDay();
+      current.festive = marked;
       days.push(current);
     }
-    const match = line.match(timeRe);
-    if (match) {
-      current.services.push({ time: match[1].replace('.', ':'), desc: match[2] });
-    } else if (!current.saint) {
-      current.saint = line;
-    } else {
-      current.services.push({ time: '', desc: line });
+
+    const wdMatch = line.match(weekdayRe);
+    if (wdMatch) {
+      current.weekday = WEEKDAYS[wdMatch[1].toLowerCase()];
+      line = line.slice(wdMatch[0].length).trim().replace(/^[|,–—-]+\s*/, '');
+      // «Вторник 29 сентября» — дата после дня недели
+      const after = line.match(dateRe);
+      if (after && !current.date) {
+        current.date = `${after[1]} ${after[2].toLowerCase()}`;
+        line = line.slice(after[0].length).trim().replace(/^[|,–—-]+\s*/, '');
+      }
+    }
+
+    const chunks = line.split(timeSplitRe);
+    const head = chunks.shift().replace(/^[|,]+\s*/, '').replace(/[|;,\s]+$/, '').trim();
+    if (head) current.feast = current.feast ? `${current.feast}. ${head}` : head;
+
+    for (let i = 0; i < chunks.length; i += 2) {
+      const time = (chunks[i] || '').replace('.', ':');
+      const desc = (chunks[i + 1] || '').replace(/^[|,–—-]+\s*/, '').replace(/[|;,\s]+$/, '').trim();
+      if (time) current.services.push({ time, desc });
     }
   });
-  return days;
+
+  days.forEach(day => {
+    if (day.weekday === 'Воскресенье') day.festive = true;
+  });
+  return days.filter(d => d.date || d.weekday || d.feast || d.services.length);
 }
 
-function isFestive(text) {
-  return /литург|всенощ|празд|троиц|пасх|рождеств|крещен|исповед/i.test(text);
+function dayHeading(day) {
+  if (day.weekday && day.date) return `${day.weekday}, ${day.date}`;
+  return day.weekday || day.date || '';
 }
 
 function renderSchedule(days) {
@@ -570,32 +632,57 @@ function renderSchedule(days) {
   }
   days.forEach(day => {
     const section = document.createElement('section');
-    section.className = 'day';
-    const title = document.createElement('div');
-    title.className = /воскресень|воскресение/i.test(day.name) ? 'day-title sunday' : 'day-title';
-    title.textContent = day.name;
-    const content = document.createElement('div');
-    if (day.saint) {
-      const saint = document.createElement('div');
-      saint.className = 'saint';
-      saint.textContent = day.saint;
-      content.appendChild(saint);
+    section.className = day.festive ? 'day festive' : 'day';
+
+    const head = document.createElement('div');
+    head.className = 'day-head';
+    const heading = dayHeading(day);
+    if (heading) {
+      const date = document.createElement('span');
+      date.className = 'day-date';
+      date.textContent = heading;
+      head.appendChild(date);
     }
-    day.services.forEach(svc => {
-      const row = document.createElement('div');
-      row.className = isFestive(svc.desc) ? 'service festive' : 'service';
-      const time = document.createElement('div');
-      time.className = 'time';
-      time.textContent = svc.time || ' ';
-      const desc = document.createElement('div');
-      desc.className = 'desc';
-      desc.textContent = svc.desc;
-      row.append(time, desc);
-      content.appendChild(row);
-    });
-    section.append(title, content);
+    if (day.feast) {
+      const feast = document.createElement('span');
+      feast.className = 'day-feast';
+      feast.textContent = day.feast;
+      head.appendChild(feast);
+    }
+    section.appendChild(head);
+
+    if (day.services.length) {
+      const list = document.createElement('div');
+      list.className = 'day-services';
+      day.services.forEach(svc => {
+        const row = document.createElement('div');
+        row.className = 'service';
+        const time = document.createElement('div');
+        time.className = 'time';
+        time.textContent = svc.time;
+        const desc = document.createElement('div');
+        desc.className = 'desc';
+        desc.textContent = svc.desc;
+        row.append(time, desc);
+        list.appendChild(row);
+      });
+      section.appendChild(list);
+    }
     box.appendChild(section);
   });
+}
+
+// Недельное расписание должно влезать в сторис целиком, поэтому ужимаем,
+// пока содержимое не поместится в лист.
+function fitSheet() {
+  const sheet = $('sheet');
+  sheet.style.setProperty('--fit', 1);
+  if (!sheet.classList.contains('post') && !sheet.classList.contains('story')) return;
+  const limit = parseFloat(getComputedStyle(sheet).minHeight);
+  for (let fit = 1; fit >= 0.55; fit -= 0.05) {
+    sheet.style.setProperty('--fit', fit.toFixed(2));
+    if (sheet.scrollHeight <= limit) return;
+  }
 }
 
 function render() {
@@ -611,21 +698,68 @@ function render() {
   $('footerChurch').textContent = $('churchName').value;
   $('footerPeriod').textContent = $('period').value;
   renderSchedule(parseSchedule($('scheduleText').value));
+  fitSheet();
   saveState();
 }
 
-function downloadHTML() {
-  const styles = document.querySelector('style').textContent;
-  const html = '<!doctype html>\\n<html lang="ru">\\n<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' +
-    $('title').value.replace(/</g, '&lt;') + '</title><style>' + styles + '</style></head><body><main style="display:block;max-width:none">' +
-    '<div class="sheet-wrap" style="border:0;background:#fff">' + $('sheet').outerHTML + '</div></main></body></html>';
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+function fileName(ext) {
+  const period = $('period').value.trim().replace(/[^\wа-яёА-ЯЁ\d]+/gi, '-').replace(/^-|-$/g, '');
+  return (period ? `raspisanie-${period}` : 'raspisanie') + '.' + ext;
+}
+
+async function sheetCanvas() {
+  await (document.fonts ? document.fonts.ready : Promise.resolve());
+  return html2canvas($('sheet'), {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    logging: false
+  });
+}
+
+async function withBusy(btn, fn) {
+  const label = btn.textContent;
+  btn.textContent = 'Готовлю…';
+  btn.disabled = true;
+  try {
+    await fn();
+  } catch (e) {
+    alert('Не получилось сохранить файл: ' + e.message);
+  } finally {
+    btn.textContent = label;
+    btn.disabled = false;
+  }
+}
+
+function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'raspisanie-degunino.html';
+  a.download = name;
+  a.style.display = 'none';
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+}
+
+async function downloadPNG() {
+  const canvas = await sheetCanvas();
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  downloadBlob(blob, fileName('png'));
+}
+
+async function downloadPDF() {
+  const canvas = await sheetCanvas();
+  const { jsPDF } = window.jspdf;
+  const portrait = canvas.height >= canvas.width;
+  const pdf = new jsPDF({ orientation: portrait ? 'p' : 'l', unit: 'mm', format: 'a4' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
+  const w = canvas.width * scale;
+  const h = canvas.height * scale;
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+  downloadBlob(pdf.output('blob'), fileName('pdf'));
 }
 
 fields.forEach(id => $(id).addEventListener('input', render));
@@ -636,7 +770,8 @@ $('resetBtn').addEventListener('click', () => {
   location.reload();
 });
 $('printBtn').addEventListener('click', () => window.print());
-$('downloadBtn').addEventListener('click', downloadHTML);
+$('savePdfBtn').addEventListener('click', e => withBusy(e.target, downloadPDF));
+$('savePngBtn').addEventListener('click', e => withBusy(e.target, downloadPNG));
 $('photoInput').addEventListener('change', event => {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
@@ -650,6 +785,7 @@ document.querySelectorAll('.format-tabs button').forEach(btn => {
     btn.classList.add('active');
     $('sheet').classList.remove('post', 'story');
     if (btn.dataset.format !== 'a4') $('sheet').classList.add(btn.dataset.format);
+    fitSheet();
   });
 });
 
