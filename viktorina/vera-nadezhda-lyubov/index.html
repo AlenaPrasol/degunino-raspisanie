@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Викторина · Мученицы Вера, Надежда, Любовь и мать их София</title>
+<meta name="description" content="Пять коротких вопросов о святых сёстрах и их матери. Нажимайте на ответ — верный откроется сразу, с двумя строками объяснения.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Викторина · Мученицы Вера, Надежда, Любовь и мать их София">
+<meta property="og:description" content="Пять коротких вопросов о святых сёстрах и их матери. Нажимайте на ответ — верный откроется сразу, с двумя строками объяснения.">
+<meta property="og:image" content="https://alenaprasol.github.io/degunino-raspisanie/viktorina/vera-nadezhda-lyubov/kartinka.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://alenaprasol.github.io/degunino-raspisanie/viktorina/vera-nadezhda-lyubov/">
+<link rel="icon" href="../../assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#244c2a; --green-dark:#0e2815; --green-ink:#2e6234; --cream:#fbf6ea; --ink:#17100a;
+          --ink-soft:rgba(33,20,10,.72); --red:#8b1e18; --gold:#d9a441; --line:rgba(46,98,52,.22); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"PT Serif",Georgia,serif; background:linear-gradient(160deg,var(--green),var(--green-dark)); color:var(--ink);
+         min-height:100vh; padding:16px 16px 40px; line-height:1.4; }
+  .wrap { max-width:680px; margin:0 auto; }
+  .card { background:var(--cream); border-radius:28px; padding:84px 22px 26px; position:relative; margin-top:64px;
+          box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  .logo { position:absolute; left:50%; top:-64px; transform:translateX(-50%); width:128px; height:128px; border-radius:50%;
+          background:#fff; border:5px solid var(--cream); overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,.22); }
+  .logo img { width:100%; height:100%; object-fit:contain; padding:14px 12px; display:block; }
+  .church { text-align:center; color:var(--green-ink); font-size:17px; line-height:1.25; }
+  .church small { display:block; color:var(--ink-soft); font-size:14px; margin-top:4px; }
+  .label { margin-top:26px; color:var(--green-ink); font-size:14px; letter-spacing:.12em; text-transform:uppercase; }
+  h1 { font-size:30px; line-height:1.15; margin-top:8px; }
+  .intro { margin-top:14px; color:var(--ink-soft); font-size:17px; }
+  .q { margin-top:30px; padding-top:22px; border-top:2px solid var(--line); }
+  .q-num { color:var(--green-ink); font-size:14px; letter-spacing:.1em; text-transform:uppercase; }
+  .q-text { font-size:21px; font-weight:700; line-height:1.3; margin-top:6px; }
+  .opts { display:grid; gap:10px; margin-top:14px; }
+  .opt { text-align:left; font:inherit; font-size:18px; line-height:1.3; padding:14px 16px; border-radius:14px;
+         border:2px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:.15s; }
+  .opt:hover { border-color:var(--green-ink); }
+  .q.done .opt { cursor:default; opacity:.7; }
+  .q.done .opt.right { background:#e6f0e3; border-color:var(--green-ink); color:var(--green-ink); opacity:1; font-weight:700; }
+  .q.done .opt.wrong { background:#f6e4e2; border-color:var(--red); color:var(--red); opacity:1; }
+  .why { display:none; margin-top:14px; padding:14px 16px; background:rgba(46,98,52,.08); border-radius:14px; font-size:17px; line-height:1.4; }
+  .q.done .why { display:block; }
+  .result { display:none; margin-top:30px; padding:22px; border-radius:18px; background:var(--green); color:var(--cream); text-align:center; }
+  .result.show { display:block; }
+  .result b { display:block; font-size:34px; margin-bottom:6px; }
+  .actions { display:grid; gap:10px; margin-top:18px; }
+  .btn { display:block; text-align:center; font:inherit; font-size:17px; padding:14px 16px; border-radius:14px; border:2px solid var(--green-ink);
+         background:var(--cream); color:var(--green-ink); text-decoration:none; cursor:pointer; }
+  .btn.primary { background:var(--green-ink); color:var(--cream); }
+  .foot { margin-top:26px; padding-top:16px; border-top:2px solid var(--line); color:var(--ink-soft); font-size:14px; line-height:1.5; }
+  .foot a { color:var(--green-ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="logo"><img src="../../assets/logo.png" alt=""></div>
+    <div class="church">Храм свв. равноапп. Кирилла и Мефодия<small>Москва, Дегунино, ул. Базовская, 15/5</small></div>
+    <div class="label">Викторина к празднику</div>
+    <h1>Мученицы Вера, Надежда, Любовь и мать их София</h1>
+    <p class="intro">Пять коротких вопросов о святых сёстрах и их матери. Нажимайте на ответ — верный откроется сразу, с двумя строками объяснения.</p>
+
+    <div id="quiz"><div class="q"><div class="q-num">Вопрос 1 из 5</div><div class="q-text">Сколько лет было сёстрам, когда они пострадали за Христа?</div><div class="opts"><button class="opt" type="button" data-right="1">12, 10 и 9 лет</button><button class="opt" type="button" data-right="0">20, 18 и 16 лет</button><button class="opt" type="button" data-right="0">6, 5 и 4 года</button></div><div class="why">Вере было 12 лет, Надежде 10, Любови 9. Они пострадали в Риме при императоре Адриане около 137 года — совсем девочки, и ни одна не отступила.</div></div><div class="q"><div class="q-num">Вопрос 2 из 5</div><div class="q-text">Что означает имя матери — София?</div><div class="opts"><button class="opt" type="button" data-right="1">Премудрость</button><button class="opt" type="button" data-right="0">Мир</button><button class="opt" type="button" data-right="0">Победа</button></div><div class="why">София по-гречески — премудрость. Дочерей звали Пистис, Элпис и Агапи; на Руси эти имена не переписали буквами, а перевели по смыслу: Вера, Надежда, Любовь. Редкий случай в святцах.</div></div><div class="q"><div class="q-num">Вопрос 3 из 5</div><div class="q-text">Как закончила земной путь святая София?</div><div class="opts"><button class="opt" type="button" data-right="1">Похоронила дочерей и на третий день тихо скончалась у их могилы</button><button class="opt" type="button" data-right="0">Была казнена вместе с дочерьми</button><button class="opt" type="button" data-right="0">Дожила до глубокой старости в монастыре</button></div><div class="why">Софию не мучили телесно: она погребла дочерей и два дня не отходила от их могилы, а на третий день Господь послал ей тихую кончину. Церковь чтит её как мученицу за муку материнского сердца.</div></div><div class="q"><div class="q-num">Вопрос 4 из 5</div><div class="q-text">Где в Москве можно поклониться мощам святой Софии?</div><div class="opts"><button class="opt" type="button" data-right="1">В храме Софии Премудрости Божией на Лубянке</button><button class="opt" type="button" data-right="0">В Елоховском соборе</button><button class="opt" type="button" data-right="0">В Новодевичьем монастыре</button></div><div class="why">Большая часть мощей святой Софии Римской хранится в храме Софии Премудрости Божией на Лубянке. От Дегунина это полчаса на метро.</div></div><div class="q"><div class="q-num">Вопрос 5 из 5</div><div class="q-text">Как этот день издавна называли в народе?</div><div class="opts"><button class="opt" type="button" data-right="1">Вселенские бабьи именины</button><button class="opt" type="button" data-right="0">Осенины</button><button class="opt" type="button" data-right="0">Капустник</button></div><div class="why">Вера, Надежда, Любовь и София — четыре самых частых женских имени на Руси, поэтому 30 сентября называли «вселенскими бабьими именинами»: именинницами в этот день были почти в каждом доме.</div></div></div>
+
+    <div class="result" id="result"><b id="score"></b><span id="verdict"></span></div>
+
+    <div class="actions">
+      <button class="btn" id="again" type="button" style="display:none">Пройти ещё раз</button>
+      <a class="btn primary" href="../../nedelya/">Расписание богослужений на неделю</a>
+      <button class="btn" id="share" type="button">Поделиться викториной</button>
+    </div>
+
+    <div class="foot">Викторину подготовил приход храма свв. равноапп. Кирилла и Мефодия в Дегунине по материалам «Азбуки веры». Литургия в нашем храме — по субботам и воскресеньям в 8:40, адрес: ул. Базовская, 15/5, у ФОКа.</div>
+  </div>
+</div>
+<script>
+  const total = document.querySelectorAll('.q').length;
+  let answered = 0, right = 0;
+  document.querySelectorAll('.q').forEach(q => {
+    q.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => {
+      if (q.classList.contains('done')) return;
+      q.classList.add('done');
+      const ok = btn.dataset.right === '1';
+      btn.classList.add(ok ? 'right' : 'wrong');
+      if (!ok) q.querySelector('.opt[data-right="1"]').classList.add('right');
+      answered++; if (ok) right++;
+      if (answered === total) finish();
+    }));
+  });
+  function finish(){
+    const r = document.getElementById('result');
+    document.getElementById('score').textContent = right + ' из ' + total;
+    const v = right === total ? 'Все ответы верные. С праздником!' :
+              right >= total - 1 ? 'Почти всё знаете. С праздником!' :
+              'Теперь знаете больше. С праздником!';
+    document.getElementById('verdict').textContent = v;
+    r.classList.add('show'); document.getElementById('again').style.display = 'block';
+    r.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  document.getElementById('again').addEventListener('click', () => location.reload());
+  document.getElementById('share').addEventListener('click', async () => {
+    const data = { title: document.title, url: location.href };
+    try { if (navigator.share) { await navigator.share(data); return; } } catch(_) {}
+    try { await navigator.clipboard.writeText(location.href); alert('Ссылка скопирована'); } catch(_) { prompt('Ссылка:', location.href); }
+  });
+</script>
+</body>
+</html>
