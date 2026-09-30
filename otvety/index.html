@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ответы по предложениям для группы ВК</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../assets/logo.png">
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --green:#244c2a; --green-dark:#0e2815; --green-ink:#2e6234; --cream:#fbf6ea; --ink:#17100a; --ink-soft:rgba(33,20,10,.72); --line:rgba(46,98,52,.22); --gold:#d9a441; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"PT Serif",Georgia,serif; background:linear-gradient(160deg,var(--green),var(--green-dark)); color:var(--ink); min-height:100vh; padding:16px 16px 48px; line-height:1.45; font-size:19px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  .card { background:var(--cream); border-radius:26px; padding:28px 22px 26px; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+  h1 { font-size:28px; line-height:1.15; color:var(--ink); }
+  .intro { color:var(--ink-soft); margin-top:10px; }
+  .item { margin-top:30px; padding-top:22px; border-top:2px solid var(--line); }
+  .item h2 { font-size:22px; line-height:1.25; color:var(--green-ink); }
+  .item p { margin-top:8px; color:var(--ink-soft); font-size:17px; }
+  .opts { display:grid; gap:10px; margin-top:14px; }
+  label.opt { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:2px solid var(--line); border-radius:14px; background:#fff; cursor:pointer; }
+  label.opt input { width:24px; height:24px; margin-top:3px; accent-color:var(--green-ink); flex:none; }
+  label.opt.on { border-color:var(--green-ink); background:#e9f1e6; }
+  .rec { display:inline-block; font-size:13px; color:var(--cream); background:var(--green-ink); border-radius:4px; padding:1px 7px; margin-left:6px; vertical-align:middle; }
+  textarea { width:100%; margin-top:12px; font:inherit; font-size:17px; padding:12px 14px; border:2px solid var(--line); border-radius:14px; background:#fff; min-height:70px; resize:vertical; }
+  .btn { display:block; width:100%; text-align:center; font:inherit; font-size:19px; padding:16px; border-radius:14px; border:2px solid var(--green-ink); background:var(--green-ink); color:var(--cream); cursor:pointer; margin-top:26px; }
+  .btn.second { background:var(--cream); color:var(--green-ink); margin-top:10px; }
+  .done { display:none; margin-top:18px; padding:16px; border-radius:14px; background:rgba(46,98,52,.1); font-size:17px; }
+  .done.show { display:block; }
+  pre { white-space:pre-wrap; font:inherit; font-size:16px; margin-top:10px; background:#fff; padding:12px; border-radius:10px; border:1px solid var(--line); }
+  .foot { margin-top:26px; font-size:15px; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+  <h1>Ответы по предложениям для группы ВК</h1>
+  <p class="intro">Матушка, здесь те же пункты, что в документе. Нажмите на подходящие варианты, при желании допишите замечание и внизу нажмите «Отправить ответы» — они уйдут Алёне. Можно отвечать не на всё.</p>
+
+  <div id="items"></div>
+
+  <label style="display:block;margin-top:26px;font-size:17px;color:var(--ink-soft)">Замечания и пожелания (необязательно)
+    <textarea id="note" placeholder="Например: у отца Даниила телефон с разъёмом Type-C"></textarea>
+  </label>
+  <label style="display:block;margin-top:14px;font-size:17px;color:var(--ink-soft)">Как вас подписать
+    <textarea id="who" style="min-height:48px" placeholder="матушка Екатерина"></textarea>
+  </label>
+
+  <button class="btn" id="send" type="button">Отправить ответы Алёне</button>
+  <button class="btn second" id="copy" type="button">Скопировать ответы</button>
+  <div class="done" id="done"></div>
+  <p class="foot">Если кнопка «Отправить» не сработала — нажмите «Скопировать» и вставьте текст в сообщение Алёне в MAX.</p>
+</div></div>
+
+<script>
+const ITEMS = [
+  {n:1, t:"Как быть с автозаписями в ВК", d:"Сейчас 86 из 300 записей — наши автоматические молитвы, цитаты, катехизис.", multi:false, o:[
+    ["А","Одна утренняя запись в день (молитва или цитата), остальное — только в MAX и Telegram", true],
+    ["Б","Молитвы перенести в истории (сторис), в ленте оставить рубрики выходного дня"],
+    ["В","Оставить как есть"]]},
+  {n:2, t:"Визитка группы: описание, статус, закреп", d:"Тексты — на странице 7 документа.", multi:false, o:[
+    ["А","Подтверждаю тексты, правки напишу в замечаниях", true],
+    ["Б","Пришлю свой вариант"]]},
+  {n:3, t:"Меню-плитки", d:"РАСПИСАНИЕ → постоянная страница недели; КОНТАКТЫ → «Как добраться»; СТРОИМ ХРАМ → статья с QR; ТРЕБЫ → hram24.ru.", multi:false, o:[
+    ["А","Подтверждаю перестановку", true],
+    ["Б","Обсудим"]]},
+  {n:4, t:"Ежедневная история «Сегодня в храме» в 6:00", d:"", multi:false, o:[
+    ["А","В истории группы ВК автоматически", true],
+    ["Б","Как А, и присылать карточку мне в MAX для истории канала MAX"],
+    ["В","Пока не нужно"]]},
+  {n:5, t:"Видео с настоятелем", d:"«Вопрос священнику» (60–90 секунд) и «Читаем авву Дорофея» (3–5 минут), по одному в неделю.", multi:false, o:[
+    ["А","Обе рубрики", true],
+    ["Б","Начать с «Вопрос священнику»"],
+    ["В","Начать с «Читаем авву Дорофея»"],
+    ["Г","Пока не готовы"]]},
+  {n:6, t:"Звук для видео", d:"", multi:false, o:[
+    ["А","Начинаем с телефона и штатива, микрофон позже"],
+    ["Б","Сразу Boya BY-V2 + штатив, около 6 500 ₽", true],
+    ["В","DJI Mic Mini, около 9 200 ₽, + штатив"]]},
+  {n:7, t:"Опросы-викторины к праздникам", d:"Один опрос ВК в записи + наша страница с ещё четырьмя вопросами.", multi:true, o:[
+    ["А","К двунадесятым, великим праздникам и известным святым — 1–2 в неделю", true],
+    ["Б","Только к двунадесятым и великим праздникам"],
+    ["В","Плюс раз в квартал опрос о самой группе: что вам интереснее", true]]},
+  {n:8, t:"Православный кроссворд", d:"", multi:true, o:[
+    ["А","Свой «Кроссворд недели» на нашей странице, раз в неделю", true],
+    ["Б","Плюс печатная версия А4 для детской группы", true],
+    ["В","Просто ссылка на кроссворд «Азбуки»"]]},
+  {n:9, t:"Платное продвижение", d:"Показ соседям в радиусе 2–3 км от храма.", multi:false, o:[
+    ["А","К Покрову 14 октября — приглашение, около 2 000 ₽", true],
+    ["Б","Постоянно: две кампании в месяц, 3 000–5 000 ₽ в месяц"],
+    ["В","Не сейчас"]]},
+  {n:10, t:"Что ещё берём", d:"Можно отметить несколько.", multi:true, o:[
+    ["А","Фоторепортаж после каждой воскресной Литургии и праздника — силами прихода", true],
+    ["Б","Статьи-памятки: записки, крещение, венчание, первый раз в храме, экскурсия"],
+    ["В","Клипы 2–3 в неделю", true],
+    ["Г","«Мероприятия» ВК к праздникам"],
+    ["Д","Соседи: районные группы, Яндекс Карты, QR у входа"],
+    ["Е","Единый стиль карточек рубрик"]]},
+  {n:11, t:"Страница-стол для согласования текстов", d:"Заготовки по рубрикам, вы ставите галочку или крестик.", multi:false, o:[
+    ["А","Да, сделайте", true],
+    ["Б","Нет, лучше присылать в MAX"]]},
+];
+const root = document.getElementById('items');
+for (const it of ITEMS) {
+  const div = document.createElement('div'); div.className = 'item';
+  div.innerHTML = `<h2>${it.n}. ${it.t}</h2>${it.d ? `<p>${it.d}</p>` : ''}<div class="opts">` +
+    it.o.map(([k, txt, rec]) => `<label class="opt"><input type="${it.multi ? 'checkbox' : 'radio'}" name="p${it.n}" value="${k}"><span><b>${k}.</b> ${txt}${rec ? '<span class="rec">рекомендую</span>' : ''}</span></label>`).join('') + `</div>`;
+  root.appendChild(div);
+}
+document.addEventListener('change', () => {
+  document.querySelectorAll('label.opt').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
+  try { localStorage.setItem('otvety', JSON.stringify(collect())); } catch(_) {}
+});
+function collect() {
+  const r = {};
+  for (const it of ITEMS) {
+    const v = Array.from(document.querySelectorAll(`input[name=p${it.n}]:checked`)).map(i => i.value);
+    if (v.length) r[it.n] = v;
+  }
+  return r;
+}
+function text() {
+  const r = collect();
+  const lines = ['Ответы по группе ВК — ' + (document.getElementById('who').value.trim() || 'приход') + ', ' + new Date().toLocaleDateString('ru-RU')];
+  for (const it of ITEMS) if (r[it.n]) lines.push(`${it.n}. ${it.t}: ${r[it.n].join(', ')}`);
+  const note = document.getElementById('note').value.trim();
+  if (note) lines.push('Замечания: ' + note);
+  return lines.join('\n');
+}
+try { const saved = JSON.parse(localStorage.getItem('otvety') || '{}');
+  for (const [n, vals] of Object.entries(saved)) vals.forEach(v => { const i = document.querySelector(`input[name=p${n}][value=${v}]`); if (i) i.checked = true; });
+  document.querySelectorAll('label.opt').forEach(l => l.classList.toggle('on', l.querySelector('input').checked));
+} catch(_) {}
+document.getElementById('send').addEventListener('click', async () => {
+  const t = text(); const done = document.getElementById('done');
+  if (navigator.share) { try { await navigator.share({ text: t }); done.innerHTML = 'Спасибо! Если выбрали MAX и отправили Алёне — всё получено.'; done.classList.add('show'); return; } catch(_) {} }
+  try { await navigator.clipboard.writeText(t); } catch(_) {}
+  done.innerHTML = 'Текст ответов скопирован. Вставьте его в сообщение Алёне в MAX:<pre>' + t.replace(/</g,'&lt;') + '</pre>'; done.classList.add('show');
+});
+document.getElementById('copy').addEventListener('click', async () => {
+  const t = text(); const done = document.getElementById('done');
+  try { await navigator.clipboard.writeText(t); } catch(_) {}
+  done.innerHTML = 'Скопировано. Вставьте в сообщение Алёне в MAX:<pre>' + t.replace(/</g,'&lt;') + '</pre>'; done.classList.add('show');
+});
+</script>
+</body>
+</html>
