@@ -410,6 +410,31 @@
     padding: 18px;
     color: rgba(33,20,10,.58);
   }
+  /* несколько листов друг под другом, у каждого своя подпись и кнопка */
+  .sheet-wrap { display: grid; gap: 18px; }
+  .page-bar {
+    width: min(860px, 100%);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .page-bar button { min-height: 36px; padding: 6px 12px; font-size: 14px; }
+  .warnings {
+    border: 1px solid rgba(220,120,90,.55);
+    background: rgba(139,30,24,.18);
+    color: #ffd9c8;
+    padding: 12px 16px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .warnings p { margin: 0; }
+  .warnings p + p { margin-top: 6px; }
+  .ok { color: #b9e3a6; }
+  .err { color: #ffb4a0; }
   @media (max-width: 960px) {
     main { grid-template-columns: 1fr; }
   }
@@ -424,7 +449,9 @@
     header, .controls, .format-tabs { display: none; }
     main { display: block; padding: 0; }
     .sheet-wrap { border: 0; padding: 0; background: #fff; overflow: visible; }
-    .sheet { width: 100%; min-height: 100vh; box-shadow: none; border: 0; }
+    .sheet { width: 100%; min-height: 100vh; box-shadow: none; border: 0; break-after: page; }
+    .sheet-wrap { display: block; }
+    .page-bar, .warnings { display: none !important; }
   }
 </style>
 </head>
@@ -453,7 +480,8 @@
           <p style="margin:0 0 10px">2. При желании загрузите фото храма вместо герба — оно встанет в кружок.</p>
           <p style="margin:0 0 10px">3. Вставьте расписание как есть — хоть прямо из вашей таблицы. Строка с датой («2 октября»), дальше день и праздник, время можно писать в той же строке.</p>
           <p style="margin:0 0 10px">4. Красным сами становятся воскресенья, двунадесятые и великие праздники — целиком, вместе со службами. Если нужно покрасить день, который не распознался, поставьте <b style="color:var(--gold2)">*</b> в начале строки с датой.</p>
-          <p style="margin:0">5. Выберите стиль и формат: A4, пост или сторис. Кнопки внизу скачивают готовый PDF или картинку.</p>
+          <p style="margin:0 0 10px">5. Выберите стиль и формат: A4, пост или сторис. Кнопки внизу скачивают готовый PDF или картинку.</p>
+          <p style="margin:0">6. Можно вставить хоть неделю, хоть весь месяц. Если дней много, расписание само разложится на несколько листов, крупным шрифтом. «Скачать картинку» сохранит каждый лист отдельной картинкой, PDF — все листы в одном файле.</p>
         </div>
       </div>
     </div>
@@ -509,6 +537,15 @@
 вс Неделя 18-я по Пятидесятнице 8:00 Водосвятный молебен 8:40 Часы. Литургия"></textarea>
     </div>
 
+    <div class="panel peredacha" id="peredacha" hidden>
+      <h2>Для недельных постов</h2>
+      <div class="fields">
+        <div style="color:var(--muted);font-size:15px;line-height:1.6">Нажмите, когда расписание готово, — мы возьмём из него недели для канала, ВКонтакте и Телеграма. Исправили что-то — нажмите ещё раз, недели поправятся. При скачивании картинок и PDF расписание передаётся само.</div>
+        <button class="primary" id="peredatBtn" type="button">Передать расписание</button>
+        <div id="peredanoStatus" style="font-size:14px;line-height:1.5"></div>
+      </div>
+    </div>
+
     <div class="actions">
       <button class="primary" id="savePdfBtn">Скачать PDF</button>
       <button id="savePngBtn">Скачать картинку</button>
@@ -528,28 +565,29 @@
       <button data-format="post">Пост</button>
       <button data-format="story">Сторис</button>
     </div>
-    <div class="sheet-wrap">
+    <div class="warnings" id="warnings" hidden></div>
+    <div class="sheet-wrap" id="sheets">
       <article id="sheet" class="sheet style-green">
         <div class="hero">
           <div class="photo has-logo" id="photoBox"></div>
           <div>
             <div class="cross">✥ ☦ ✥</div>
-            <div class="church-name" id="previewChurch"></div>
-            <div class="subtitle" id="previewTitle"></div>
+            <div class="church-name p-church" id="previewChurch"></div>
+            <div class="subtitle p-title" id="previewTitle"></div>
           </div>
         </div>
         <div class="meta">
-          <span id="previewPlace"></span>
+          <span class="p-place" id="previewPlace"></span>
           <div class="meta-priest">
-            <span id="previewPriest"></span>
-            <span id="previewContact"></span>
+            <span class="p-priest" id="previewPriest"></span>
+            <span class="p-contact" id="previewContact"></span>
           </div>
         </div>
         <div class="schedule-title" id="scheduleTitle"></div>
         <div class="schedule" id="previewSchedule"></div>
         <div class="footer">
-          <span id="footerChurch"></span>
-          <span id="footerPeriod"></span>
+          <span class="p-fchurch" id="footerChurch"></span>
+          <span class="p-fperiod" id="footerPeriod"></span>
         </div>
       </article>
     </div>
@@ -734,13 +772,46 @@ function parseSchedule(raw) {
   });
 
   days.forEach(day => {
+    day.iso = isoDate(day.date);
+    // день недели можно не писать — он считается по дате; написан не тот — подскажем
+    if (day.iso) {
+      const nastoyashchiy = WEEKDAY_NAMES[new Date(day.iso + 'T12:00:00').getDay()];
+      if (!day.weekday) day.weekday = nastoyashchiy;
+      else if (day.weekday !== nastoyashchiy) day.oshibka = `${day.date} — это ${nastoyashchiy.toLowerCase()}, а написано «${day.weekday.toLowerCase()}»`;
+    }
     if (day.weekday === 'Воскресенье' || isFeast(day.feast)) day.festive = true;
   });
   return days.filter(d => d.date || d.weekday || d.feast || d.services.length);
 }
 
-function renderSchedule(days) {
-  const box = $('previewSchedule');
+const WEEKDAY_NAMES = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+
+// «2 ноября» → «2026-11-02». Год в расписании не пишут: берём ближайший к сегодняшнему дню —
+// в октябре «5 января» значит следующий год, в январе «28 декабря» — прошедший.
+function isoDate(text) {
+  const m = (text || '').match(dateRe);
+  if (!m) return '';
+  const den = +m[1], mes = MONTHS.indexOf(m[2].toLowerCase());
+  const now = new Date();
+  let god = now.getFullYear();
+  const raznica = (new Date(god, mes, den) - now) / 864e5;
+  if (raznica < -150) god += 1;
+  else if (raznica > 210) god -= 1;
+  const d = new Date(god, mes, den);
+  if (d.getMonth() !== mes) return '';   // «31 ноября»
+  return `${god}-${String(mes + 1).padStart(2, '0')}-${String(den).padStart(2, '0')}`;
+}
+
+function periodPoDnyam(days) {
+  const s = days.map(d => d.iso).filter(Boolean).sort();
+  if (!s.length) return '';
+  const [a, b] = [new Date(s[0] + 'T12:00:00'), new Date(s[s.length - 1] + 'T12:00:00')];
+  if (s.length === 1 || s[0] === s[s.length - 1]) return `${a.getDate()} ${MONTHS[a.getMonth()]}`;
+  if (a.getMonth() === b.getMonth()) return `${a.getDate()}–${b.getDate()} ${MONTHS[b.getMonth()]}`;
+  return `${a.getDate()} ${MONTHS[a.getMonth()]} – ${b.getDate()} ${MONTHS[b.getMonth()]}`;
+}
+
+function renderSchedule(days, box) {
   box.innerHTML = '';
   if (!days.length) {
     box.innerHTML = '<div class="empty">Впишите расписание слева</div>';
@@ -782,45 +853,169 @@ function renderSchedule(days) {
 
 // Шрифт подстраивается под лист в обе стороны: растёт, пока есть место
 // (чтобы читали и слабовидящие), и ужимается, если неделя не влезает.
-function fitSheet() {
-  const sheet = $('sheet');
+// возвращает, каким вышел шрифт: меньше 0.55 не бывает — тогда лист переполнен
+function fitSheet(sheet) {
   const limit = parseFloat(getComputedStyle(sheet).minHeight);
   const fits = f => { sheet.style.setProperty('--fit', f.toFixed(3)); return sheet.scrollHeight <= limit + 1; };
   let lo = 0.55, hi = 1.6;
-  if (!fits(lo)) { return; }
+  if (!fits(lo)) { return 0; }
   for (let i = 0; i < 10; i++) {
     const mid = (lo + hi) / 2;
     if (fits(mid)) lo = mid; else hi = mid;
   }
   fits(lo);
+  return lo;
 }
+
+// Месяц на один лист не влезет крупно — раскладываем на несколько. Шрифт на листе не мельче,
+// чем на обычной недельке: расписание читают и пожилые прихожане.
+const MIN_FIT = { a4: 0.92, post: 0.85, story: 0.8 };
+const SHEET_TPL = $('sheet').cloneNode(true);
+let sheets = [$('sheet')];
+
+function format() {
+  const s = $('sheet');
+  return s.classList.contains('story') ? 'story' : (s.classList.contains('post') ? 'post' : 'a4');
+}
+
+// неделю (и меньше) не делим никогда: по одному листу её снимает воскресный автопост
+function mnogoDney(days) {
+  const s = days.map(d => d.iso).filter(Boolean).sort();
+  if (s.length < 2) return days.length > 7;
+  return (new Date(s[s.length - 1]) - new Date(s[0])) / 864e5 >= 7;
+}
+
+function ves(d) { return 1.6 + d.services.length + (d.feast || '').length / 55; }
+
+// подряд идущие дни → p листов примерно одинаковой наполненности
+function razlozhit(days, p) {
+  const vsego = days.reduce((a, d) => a + ves(d), 0), cel = vsego / p;
+  const listy = [];
+  let tek = [], nabrano = 0;
+  days.forEach(d => {
+    if (tek.length && nabrano + ves(d) / 2 > cel && listy.length < p - 1) { listy.push(tek); tek = []; nabrano = 0; }
+    tek.push(d); nabrano += ves(d);
+  });
+  listy.push(tek);
+  return listy;
+}
+
+function sedmicy(days) {
+  const gruppy = [];
+  let klyuchNedeli = null;
+  days.forEach(d => {
+    const dt = new Date(d.iso + 'T12:00:00');
+    const pn = new Date(dt - ((dt.getDay() + 6) % 7) * 864e5).toISOString().slice(0, 10);
+    if (pn !== klyuchNedeli) { gruppy.push([]); klyuchNedeli = pn; }
+    gruppy[gruppy.length - 1].push(d);
+  });
+  return gruppy;
+}
+
+function zapolnitList(sheet, days, nomer, iz) {
+  const q = c => sheet.querySelector(c);
+  const period = $('period').value.trim();
+  const svoy = iz > 1 || !period ? periodPoDnyam(days) : period;
+  q('.p-church').textContent = $('churchName').value;
+  q('.p-title').textContent = $('title').value;
+  q('.schedule-title').textContent = svoy ? `Расписание · ${svoy}` : 'Расписание';
+  q('.p-place').textContent = $('place').value;
+  q('.p-priest').textContent = $('priest').value ? `Настоятель: ${$('priest').value}` : '';
+  q('.p-contact').textContent = $('contact').value;
+  q('.p-fchurch').textContent = $('churchName').value;
+  q('.p-fperiod').textContent = iz > 1 ? `лист ${nomer} из ${iz}` + (period ? ` · ${period}` : '') : period;
+  if (sheet !== $('sheet')) {
+    q('.photo').className = $('photoBox').className;
+    q('.photo').innerHTML = $('photoBox').innerHTML;
+  }
+  renderSchedule(days, q('.schedule'));
+}
+
+function postroitListy(days) {
+  const wrap = $('sheets');
+  const style = $('style').value, fmt = format();
+  const cls = `sheet style-${style}${fmt === 'a4' ? '' : ' ' + fmt}`;
+  wrap.querySelectorAll('.page-bar, article.sheet:not(#sheet)').forEach(n => n.remove());
+  $('sheet').className = cls;
+  let listy = [days];
+  const sobrat = gruppy => {
+    wrap.querySelectorAll('article.sheet:not(#sheet)').forEach(n => n.remove());
+    sheets = gruppy.map((g, i) => {
+      let s = $('sheet');
+      if (i) {
+        s = SHEET_TPL.cloneNode(true);
+        s.removeAttribute('id');
+        s.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+        s.className = cls;
+        wrap.appendChild(s);
+      }
+      zapolnitList(s, g, i + 1, gruppy.length);
+      return s;
+    });
+    return sheets.map(fitSheet);
+  };
+  const krupno = fits => fits.every(f => f >= MIN_FIT[fmt]);
+  // лучше всего — седмица на листе, понедельник–воскресенье; огрызок недели в 1–2 дня
+  // на краю месяца приклеиваем к соседней, если вместе всё ещё крупно
+  let poNedelyam = mnogoDney(days) && days.every(d => d.iso) ? sedmicy(days) : null;
+  if (poNedelyam && krupno(sobrat(poNedelyam))) {
+    for (const kray of ['nachalo', 'konec']) {
+      const g = poNedelyam;
+      if (g.length < 2) break;
+      const [i, j] = kray === 'nachalo' ? [0, 1] : [g.length - 2, g.length - 1];
+      if (Math.min(g[i].length, g[j].length) > 2) continue;
+      const proba = [...g.slice(0, i), [...g[i], ...g[j]], ...g.slice(j + 1)];
+      if (krupno(sobrat(proba))) poNedelyam = proba;
+    }
+    sobrat(poNedelyam);
+  } else if (mnogoDney(days)) {
+    for (let p = 2; p <= 16; p++) {
+      listy = razlozhit(days, p);
+      if (sobrat(listy).every(f => f >= MIN_FIT[fmt])) break;
+    }
+  } else {
+    sobrat(listy);
+  }
+  if (sheets.length > 1) {
+    sheets.forEach((s, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'page-bar';
+      bar.innerHTML = `<span>Лист ${i + 1} из ${sheets.length}</span><button type="button">Скачать этот лист</button>`;
+      bar.querySelector('button').addEventListener('click', e => withBusy(e.target, () => downloadPNG([s])));
+      wrap.insertBefore(bar, s);
+    });
+  }
+}
+
+function pokazatPredupr(days) {
+  const msgs = [];
+  days.filter(d => d.oshibka).forEach(d => msgs.push(d.oshibka));
+  days.filter(d => !d.iso && (d.feast || d.services.length)).forEach(d =>
+    msgs.push(`Не вижу дату у дня «${(d.weekday || '')} ${(d.feast || '').slice(0, 50)}». Напишите строку с числом и месяцем: «2 ноября».`));
+  const w = $('warnings');
+  w.hidden = !msgs.length;
+  w.innerHTML = '';
+  msgs.forEach(t => { const p = document.createElement('p'); p.textContent = t; w.appendChild(p); });
+}
+
+let dniSeychas = [];
 
 function render() {
-  const style = $('style').value;
-  const sheet = $('sheet');
-  const format = sheet.classList.contains('story') ? ' story' : (sheet.classList.contains('post') ? ' post' : '');
-  sheet.className = `sheet style-${style}${format}`;
-  $('previewChurch').textContent = $('churchName').value;
-  $('previewTitle').textContent = $('title').value;
-  $('scheduleTitle').textContent = $('period').value ? `Расписание · ${$('period').value}` : 'Расписание';
-  $('previewPlace').textContent = $('place').value;
-  $('previewPriest').textContent = $('priest').value ? `Настоятель: ${$('priest').value}` : '';
-  $('previewContact').textContent = $('contact').value;
-  $('footerChurch').textContent = $('churchName').value;
-  $('footerPeriod').textContent = $('period').value;
-  renderSchedule(parseSchedule($('scheduleText').value));
-  fitSheet();
+  dniSeychas = parseSchedule($('scheduleText').value);
+  postroitListy(dniSeychas);
+  pokazatPredupr(dniSeychas);
   saveState();
+  pokazatStatus();
 }
 
-function fileName(ext) {
-  const period = $('period').value.trim().replace(/[^\wа-яёА-ЯЁ\d]+/gi, '-').replace(/^-|-$/g, '');
-  return (period ? `raspisanie-${period}` : 'raspisanie') + '.' + ext;
+function fileName(ext, nomer) {
+  const period = ($('period').value.trim() || periodPoDnyam(dniSeychas)).replace(/[^\wа-яёА-ЯЁ\d]+/gi, '-').replace(/^-|-$/g, '');
+  return (period ? `raspisanie-${period}` : 'raspisanie') + (nomer ? `-list-${nomer}` : '') + '.' + ext;
 }
 
-async function sheetCanvas() {
+async function sheetCanvas(sheet) {
   await (document.fonts ? document.fonts.ready : Promise.resolve());
-  return html2canvas($('sheet'), {
+  return html2canvas(sheet, {
     scale: 2,
     backgroundColor: '#ffffff',
     useCORS: true,
@@ -853,24 +1048,108 @@ function downloadBlob(blob, name) {
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
 }
 
-async function downloadPNG() {
-  const canvas = await sheetCanvas();
-  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-  downloadBlob(blob, fileName('png'));
+// по листу на картинку: в канал MAX их кладут альбомом
+async function downloadPNG(kakie) {
+  const spisok = kakie || sheets;
+  for (const s of spisok) {
+    const canvas = await sheetCanvas(s);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    downloadBlob(blob, fileName('png', sheets.length > 1 ? sheets.indexOf(s) + 1 : 0));
+    await new Promise(r => setTimeout(r, 450));   // браузеры не любят пачку скачиваний разом
+  }
+  if (!kakie) peredat(true);
 }
 
 async function downloadPDF() {
-  const canvas = await sheetCanvas();
   const { jsPDF } = window.jspdf;
-  const portrait = canvas.height >= canvas.width;
-  const pdf = new jsPDF({ orientation: portrait ? 'p' : 'l', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
-  const w = canvas.width * scale;
-  const h = canvas.height * scale;
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+  for (let i = 0; i < sheets.length; i++) {
+    const canvas = await sheetCanvas(sheets[i]);
+    if (i) pdf.addPage('a4', 'p');
+    const scale = Math.min(pageW / canvas.width, pageH / canvas.height);
+    const w = canvas.width * scale;
+    const h = canvas.height * scale;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, (pageH - h) / 2, w, h);
+  }
   downloadBlob(pdf.output('blob'), fileName('pdf'));
+  peredat(true);
+}
+
+// ---------- передача дней для недельных постов ----------
+// Ключ — личная ссылка стола матушки: студию открывают по адресу …/#k=<ключ>, ключ запоминается
+// в этом браузере, а из адресной строки убирается, чтобы не ушёл дальше, если ссылкой поделятся.
+// Нет ключа — нет и кнопки: для всех остальных студия остаётся просто студией.
+// Если наш сервер не ответит, ничего страшного: листы у матушки всё равно скачаны.
+const PRIEM = 'https://stol.svetopis.art/api/raspisanie';
+const KEY_STORE = 'degunino-raspisanie-klyuch';
+const SENT_STORE = 'degunino-raspisanie-peredano';
+
+function klyuch() {
+  const m = location.hash.match(/k=([A-Za-z0-9_-]{8,64})/);
+  if (m) {
+    try { localStorage.setItem(KEY_STORE, m[1]); } catch (_) {}
+    history.replaceState(null, '', location.pathname + location.search);
+    return m[1];
+  }
+  try { return localStorage.getItem(KEY_STORE) || ''; } catch (_) { return ''; }
+}
+const KLYUCH = klyuch();
+
+function dlyaPeredachi() {
+  return dniSeychas.filter(d => d.iso).map(d => ({
+    date: d.iso, weekday: d.weekday, feast: d.feast, festive: !!d.festive,
+    services: d.services.map(s => ({ time: s.time, desc: s.desc }))
+  }));
+}
+
+function proshloe() {
+  try { return JSON.parse(localStorage.getItem(SENT_STORE) || 'null'); } catch (_) { return null; }
+}
+
+function pokazatStatus(oshibka) {
+  if (!KLYUCH) return;
+  const box = $('peredanoStatus');
+  if (oshibka) { box.className = 'err'; box.textContent = oshibka; return; }
+  const p = proshloe();
+  const sovpadaet = p && p.dni === JSON.stringify(dlyaPeredachi());
+  if (!p) { box.className = ''; box.textContent = 'Ещё не передавали.'; return; }
+  box.className = sovpadaet ? 'ok' : '';
+  box.textContent = sovpadaet
+    ? `✓ Передано ${p.kogda}: ${p.period}. Недели возьмутся отсюда.`
+    : `Последний раз передавали ${p.kogda} (${p.period}). С тех пор расписание менялось — нажмите «Передать».`;
+}
+
+async function peredat(tikho) {
+  if (!KLYUCH) return;
+  const dni = dlyaPeredachi();
+  if (!dni.length) { if (!tikho) pokazatStatus('Нечего передавать: не вижу ни одной даты.'); return; }
+  const bezDaty = dniSeychas.filter(d => !d.iso && (d.feast || d.services.length)).length;
+  if (bezDaty && !tikho) { pokazatStatus(`У ${bezDaty} дн. не вижу даты — поправьте (подсказка над листом) и передайте ещё раз.`); }
+  const telo = JSON.stringify(dni);
+  const p = proshloe();
+  if (tikho && p && p.dni === telo) return;
+  const btn = $('peredatBtn');
+  btn.disabled = true;
+  try {
+    const r = await fetch(PRIEM, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                   body: JSON.stringify({ token: KLYUCH, dni }) });
+    const otvet = await r.json().catch(() => ({}));
+    if (!r.ok || !otvet.ok) throw new Error(otvet.error || `сервер ответил ${r.status}`);
+    const kogda = new Date().toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    try { localStorage.setItem(SENT_STORE, JSON.stringify({ dni: telo, kogda, period: periodPoDnyam(dniSeychas) })); } catch (_) {}
+    if (!bezDaty || tikho) pokazatStatus();
+  } catch (e) {
+    pokazatStatus('Не получилось передать: ' + e.message + '. Листы у вас сохранены — можно передать позже или просто выложить их, мы возьмём оттуда.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+if (KLYUCH) {
+  $('peredacha').hidden = false;
+  $('peredatBtn').addEventListener('click', () => peredat(false));
 }
 
 fields.forEach(id => $(id).addEventListener('input', render));
@@ -896,7 +1175,7 @@ document.querySelectorAll('.format-tabs button').forEach(btn => {
     btn.classList.add('active');
     $('sheet').classList.remove('post', 'story');
     if (btn.dataset.format !== 'a4') $('sheet').classList.add(btn.dataset.format);
-    fitSheet();
+    postroitListy(dniSeychas);
   });
 });
 
