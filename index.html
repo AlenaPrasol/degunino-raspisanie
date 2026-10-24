@@ -179,7 +179,7 @@
   }
   .sheet {
     --fit: 1;
-    width: min(860px, 100%);
+    width: 860px;
     min-height: 1080px;
     margin: 0 auto;
     background: var(--paper);
@@ -191,11 +191,11 @@
     flex-direction: column;
   }
   .sheet.post {
-    width: min(720px, 100%);
+    width: 720px;
     min-height: 900px;
   }
   .sheet.story {
-    width: min(470px, 100%);
+    width: 470px;
     min-height: 835px;
   }
   /* шапка только ужимается, но не растёт — лишнее место отдаём расписанию */
@@ -253,7 +253,7 @@
     margin-bottom: calc(8px * var(--h));
   }
   .church-name {
-    font-size: calc(clamp(24px, 3.6vw, 36px) * var(--h));
+    font-size: calc(36px * var(--h));
     line-height: 1.1;
   }
   .subtitle {
@@ -413,7 +413,8 @@
   /* несколько листов друг под другом, у каждого своя подпись и кнопка */
   .sheet-wrap { display: grid; gap: 18px; }
   .page-bar {
-    width: min(860px, 100%);
+    width: 860px;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -931,7 +932,20 @@ function zapolnitList(sheet, days, nomer, iz) {
   renderSchedule(days, q('.schedule'));
 }
 
+// Лист всегда верстается в настоящем размере, а на узком экране только показывается меньше.
+// Раньше лист сужался по экрану, и на телефоне ноябрь рассыпался на 14 узких листов с обрезанным
+// текстом (матушка, 24.10.2026). Теперь листы и файлы одинаковые с любого устройства.
+const SHIRINA = { a4: 860, post: 720, story: 470 };
+function masshtab() {
+  const wrap = $('sheets');
+  const mesto = wrap.clientWidth - 36;
+  const z = Math.min(1, mesto / SHIRINA[format()]);
+  wrap.querySelectorAll('article.sheet').forEach(s => { s.style.zoom = z < 1 ? z.toFixed(4) : ''; });
+}
+window.addEventListener('resize', () => masshtab());
+
 function postroitListy(days) {
+  $('sheet').style.zoom = '';
   const wrap = $('sheets');
   const style = $('style').value, fmt = format();
   const cls = `sheet style-${style}${fmt === 'a4' ? '' : ' ' + fmt}`;
@@ -985,6 +999,7 @@ function postroitListy(days) {
       wrap.insertBefore(bar, s);
     });
   }
+  masshtab();
 }
 
 function pokazatPredupr(days) {
@@ -1015,12 +1030,18 @@ function fileName(ext, nomer) {
 
 async function sheetCanvas(sheet) {
   await (document.fonts ? document.fonts.ready : Promise.resolve());
-  return html2canvas(sheet, {
-    scale: 2,
-    backgroundColor: '#ffffff',
-    useCORS: true,
-    logging: false
-  });
+  const z = sheet.style.zoom;
+  sheet.style.zoom = '';          // снимаем в настоящем размере, без экранного уменьшения
+  try {
+    return await html2canvas(sheet, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+  } finally {
+    sheet.style.zoom = z;
+  }
 }
 
 async function withBusy(btn, fn) {
